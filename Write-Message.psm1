@@ -44,21 +44,21 @@ function Write-Message {
 
     param(
         [parameter(Mandatory, Position = 0)] [string]$Message,
-        [validateset('Debug', 'Verbose', 'Info', 'Success', 'Warn', 'Warning', 'Error')] [string]$Type = 'Info',
+        [validateset('Debug', 'Verbose', 'Info', 'Success', 'Warning', 'Error')] [string]$Type = 'Info',
         [switch]$Clean,
         [string]$OutFile
     )
 
     begin {
-        #   ┌────────────────────────────────────────────────────────┐
-        #   │ I. Stage backwards compatibility with older functions. │
-        #   └────────────────────────────────────────────────────────┘
+        #   ┌───I.────────────────────────────────────────┐
+        #   │ Enforce $Clean when using older PowerShell. │
+        #   └─────────────────────────────────────────────┘
 
-        if ($logFile) { $OutFile = $logFile }
+        if ($PSVersionTable.PSVersion.Major -lt 7) { $Clean = $true }
         
-        #   ┌─────────────────────────────────────┐
-        #   │ II. Stage parameters and variables. │
-        #   └─────────────────────────────────────┘
+        #   ┌───II.───────────────────────────┐
+        #   │ Stage parameters and variables. │
+        #   └─────────────────────────────────┘
 
         $Date = $(Get-Date -UFormat "[%a %b %d %T %Y] ")
         if (-not($Clean)) {
@@ -80,20 +80,20 @@ function Write-Message {
     
     process {
 
-        #   ┌─────────────────────────────────────────────────┐
-        #   │ III. Format the message for output to the host. │
-        #   └─────────────────────────────────────────────────┘
+        #   ┌───III.─────────────────────────────────────┐
+        #   │ Format the message for output to the host. │
+        #   └────────────────────────────────────────────┘
 
         if ($Type -eq 'Debug' -and $DebugPreference -eq 'Continue') { $MessageContent = "$ColorDebug$Date$ColorDebugBold$PrefixDebug$ColorDebug$Message$ColorDefault" }
         if ($Type -eq 'Verbose' -and $VerbosePreference -eq 'Continue') { $MessageContent = "$ColorVerbose$Date$ColorVerboseBold$PrefixVerbose$ColorVerbose$Message$ColorDefault" }
         if ($Type -eq 'Info') { $MessageContent = "$Date$Message$ColorDefault" }
         if ($Type -eq 'Success') { $MessageContent = "$Date$ColorSuccess$PrefixSuccess$ColorDefault$Message" }
-        if ($Type -eq 'Warn' -or $Type -eq 'Warning') { $MessageContent = "$Date$ColorWarning$PrefixWarning$ColorDefault$Message" }
+        if ($Type -eq 'Warning') { $MessageContent = "$Date$ColorWarning$PrefixWarning$ColorDefault$Message" }
         if ($Type -eq 'Error') { $MessageContent = "$Date$ColorError$PrefixError$ColorDefault$Message" }
 
-        #   ┌──────────────────────────────────────────────────┐
-        #   │ IV. Format the message for output to a log file. │
-        #   └──────────────────────────────────────────────────┘
+        #   ┌───IV.────────────────────────────────────────┐
+        #   │ Format the message for output to a log file. │
+        #   └──────────────────────────────────────────────┘
 
         if ($OutFile) {
             if ($DebugPreference -eq 'Continue') { Write-Output "$ColorDebug$Date$ColorDebugBold$PrefixDebug$ColorDebug`$OutFile detected as $OutFile." }
@@ -116,4 +116,4 @@ function Write-Message {
     }
 }
 
-# Export-ModuleMember -Function Write-Message
+Export-ModuleMember -Function Write-Message
