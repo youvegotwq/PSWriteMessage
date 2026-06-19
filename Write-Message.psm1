@@ -46,6 +46,7 @@ function Write-Message {
         [parameter(Mandatory, Position = 0)] [string]$Message,
         [validateset('Debug', 'Verbose', 'Info', 'Success', 'Warning', 'Error')] [string]$Type = 'Info',
         [switch]$Clean,
+        [switch]$NoPrefix,
         [string]$OutFile
     )
 
@@ -54,7 +55,7 @@ function Write-Message {
         #   │ Enforce $Clean when using older PowerShell. │
         #   └─────────────────────────────────────────────┘
 
-        if ($PSVersionTable.PSVersion.Major -lt 7) { $Clean = $true }
+        if ($PSVersionTable.PSVersion.Major -lt 7) { $Clean = $True }
         
         #   ┌───II.───────────────────────────┐
         #   │ Stage parameters and variables. │
@@ -71,11 +72,14 @@ function Write-Message {
             $ColorDebug = "`e[38;5;240m"
             $ColorDebugBold = "`e[1;38;5;240m"
         }
-        $PrefixVerbose = '[VERBOSE] '
-        $PrefixSuccess = '[SUCCESS] '
-        $PrefixWarning = '[WARNING] '
-        $PrefixError = '[ERROR] '
-        $PrefixDebug = '[DEBUG] '
+        if (-not($NoPrefix)) {
+            $PrefixVerbose = '[VERBOSE] '
+            $PrefixSuccess = '[SUCCESS] '
+            $PrefixWarning = '[WARNING] '
+            $PrefixError = '[ERROR]   '
+            $PrefixDebug = '[DEBUG]   '
+            $PrefixInfo = '[INFO]    '
+        }
     }
     
     process {
@@ -86,7 +90,7 @@ function Write-Message {
 
         if ($Type -eq 'Debug' -and $DebugPreference -eq 'Continue') { $MessageContent = "$ColorDebug$Date$ColorDebugBold$PrefixDebug$ColorDebug$Message$ColorDefault" }
         if ($Type -eq 'Verbose' -and $VerbosePreference -eq 'Continue') { $MessageContent = "$ColorVerbose$Date$ColorVerboseBold$PrefixVerbose$ColorVerbose$Message$ColorDefault" }
-        if ($Type -eq 'Info') { $MessageContent = "$Date$Message$ColorDefault" }
+        if ($Type -eq 'Info') { $MessageContent = "$Date$PrefixInfo$Message$ColorDefault" }
         if ($Type -eq 'Success') { $MessageContent = "$Date$ColorSuccess$PrefixSuccess$ColorDefault$Message" }
         if ($Type -eq 'Warning') { $MessageContent = "$Date$ColorWarning$PrefixWarning$ColorDefault$Message" }
         if ($Type -eq 'Error') { $MessageContent = "$Date$ColorError$PrefixError$ColorDefault$Message" }
@@ -100,9 +104,9 @@ function Write-Message {
             try {
                 if ($Type -eq 'Debug' -and $DebugPreference -eq 'Continue') { Add-Content -Path $OutFile -Value "$Date$PrefixDebug$Message" }
                 if ($Type -eq 'Verbose' -and $VerbosePreference -eq 'Continue') { Add-Content -Path $OutFile -Value "$Date$PrefixVerbose$Message" }
-                if ($Type -eq 'Info') { Add-Content -Path $OutFile -Value  "$Date$Message" }
+                if ($Type -eq 'Info') { Add-Content -Path $OutFile -Value  "$Date$PrefixInfo$Message" }
                 if ($Type -eq 'Success') { Add-Content -Path $OutFile -Value "$Date$PrefixSuccess$Message" }
-                if ($Type -eq 'Warn' -or $Type -eq 'Warning') { Add-Content -Path $OutFile -Value "$Date$PrefixWarning$Message" }
+                if ($Type -eq 'Warning') { Add-Content -Path $OutFile -Value "$Date$PrefixWarning$Message" }
                 if ($Type -eq 'Error') { Add-Content -Path $OutFile -Value "$Date$PrefixError$Message" }
             }
             catch {
