@@ -15,7 +15,7 @@ function Write-Message {
         This function can be utilized in place of the various builtin
         'Write-*' cmdlets.
     .PARAMETER Message
-        Any message to be sent, must in enclosed in quotes.
+        Any message to be sent, must be enclosed in quotes.
     .PARAMETER Type
         The type of message to be sent. Valid options are Debug, Verbose,
         Info, Success, Warning, and Error. Debug and Verbose only produce
@@ -166,7 +166,7 @@ function Write-Message {
     }
 
     end {
-        $MessageContent
+        if ($null -ne $MessageContent) { $MessageContent }
     }
 }
 
