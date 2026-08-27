@@ -12,7 +12,7 @@
 RootModule = 'PSWriteMessage.psm1'
 
 # Version number of this module. CalVer: YYYY.0M.0D, bumped on each dated release.
-ModuleVersion = '2026.08.21'
+ModuleVersion = '2026.08.26'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -108,7 +108,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-Unreleased
+2026.08.26
 
 Changed:
 - BREAKING: Write-Message no longer writes to the success stream. Output now

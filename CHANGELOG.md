@@ -9,6 +9,8 @@ out explicitly in the notes below** rather than signalled by the version.
 
 ## [Unreleased]
 
+## [2026.08.26] - 2026-08-26
+
 ### Changed
 
 - **Breaking:** `Write-Message` no longer writes to the success (output) stream.
@@ -36,7 +38,7 @@ out explicitly in the notes below** rather than signalled by the version.
   `$PSCmdlet.GetVariableValue`; a switch bound directly on `Write-Message` still
   takes precedence.
 
-## [2026.08.21] - 2026-08-26
+## [2026.08.21] - 2026-08-21
 
 First PowerShell Gallery release.
 
@@ -51,5 +53,6 @@ First PowerShell Gallery release.
 - `-Clean` to strip ANSI formatting, `-NoPrefix` to omit the type label, and
   `-OutFile` to tee the message (always uncoloured) to a log file.
 
-[Unreleased]: https://github.com/youvegotwq/PSWriteMessage/compare/2026.08.21...HEAD
+[Unreleased]: https://github.com/youvegotwq/PSWriteMessage/compare/2026.08.26...HEAD
+[2026.08.26]: https://github.com/youvegotwq/PSWriteMessage/compare/2026.08.21...2026.08.26
 [2026.08.21]: https://github.com/youvegotwq/PSWriteMessage/releases/tag/2026.08.21
