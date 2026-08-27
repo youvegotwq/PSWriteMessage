@@ -40,6 +40,9 @@ jobs:
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
         run: |
           if (-not $env:PSGALLERY_API_KEY) { throw "PSGALLERY_API_KEY secret is not set." }
-          # NuGet provider missing is the most common Publish-Module CI failure.
-          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
-          Publish-Module -Path ./staging/PSWriteMessage -NuGetApiKey $env:PSGALLERY_API_KEY -Verbose
+          # PSResourceGet ships with PowerShell 7.4+ on GitHub-hosted runners and
+          # needs no NuGet provider bootstrap (unlike Publish-Module).
+          Write-Host "PowerShell $($PSVersionTable.PSVersion)"
+          Get-Module Microsoft.PowerShell.PSResourceGet -ListAvailable |
+              Select-Object Name, Version | Format-Table | Out-String | Write-Host
+          Publish-PSResource -Path ./staging/PSWriteMessage -ApiKey $env:PSGALLERY_API_KEY -Repository PSGallery -Verbose
