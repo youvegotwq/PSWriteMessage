@@ -89,7 +89,11 @@ See `Get-Help Write-Message -Full` for complete parameter and example documentat
 
 ## Versioning
 
-This module uses [CalVer](https://calver.org/) (`YYYY.0M.0D`) rather than SemVer — `ModuleVersion` reflects the date of the release, not compatibility guarantees. Note that PowerShell's `ModuleVersion` field is a `[System.Version]`, so the zero-padding is preserved in this file's source but stripped when read back at runtime (`2026.08.21` reports as `2026.8.21` via `Get-Module`/`Test-ModuleManifest`).
+This module uses [CalVer](https://calver.org/) (`YYYY.0M.0D`) rather than SemVer — `ModuleVersion` reflects the date of the release, not compatibility guarantees. Because the version number carries no compatibility signal, **breaking changes are called out explicitly in [`CHANGELOG.md`](CHANGELOG.md)**. Note that PowerShell's `ModuleVersion` field is a `[System.Version]`, so the zero-padding is preserved in this file's source but stripped when read back at runtime (`2026.08.21` reports as `2026.8.21` via `Get-Module`/`Test-ModuleManifest`).
+
+## Changelog
+
+See [`CHANGELOG.md`](CHANGELOG.md) for the full history. Release notes for the installed version are also available via `(Find-Module PSWriteMessage).ReleaseNotes` or on the [PowerShell Gallery](https://www.powershellgallery.com/packages/PSWriteMessage) page.
 
 ## License
 
