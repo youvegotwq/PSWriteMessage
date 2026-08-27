@@ -12,7 +12,7 @@
 RootModule = 'PSWriteMessage.psm1'
 
 # Version number of this module. CalVer: YYYY.0M.0D, bumped on each dated release.
-ModuleVersion = '2026.08.21'
+ModuleVersion = '2026.08.26'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -107,7 +107,27 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = @'
+2026.08.26
+
+Changed:
+- BREAKING: Write-Message no longer writes to the success stream. Output now
+  goes to the host via Write-Host (information stream 6), so log lines can no
+  longer contaminate a function's return value or a captured pipeline. Callers
+  that captured the string ($x = Write-Message ...) now get $null; use 6>&1 or
+  -OutFile to capture the text. OutputType is now [void].
+- Debug/Verbose messages show for any effective preference other than
+  SilentlyContinue (was: only Continue), matching the built-in Write-Verbose /
+  Write-Debug. This makes -Debug work on Windows PowerShell 5.1, where the
+  switch sets $DebugPreference to Inquire rather than Continue.
+
+Fixed:
+- -Verbose / -Debug passed to an ancestor function in another module or script
+  is now honored; the effective preference is resolved from the caller's scope
+  instead of the module's own.
+
+Full changelog: https://github.com/youvegotwq/PSWriteMessage/blob/main/CHANGELOG.md
+'@
 
         # Prerelease string of this module
         # Prerelease = ''

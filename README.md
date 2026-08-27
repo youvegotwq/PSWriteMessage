@@ -53,13 +53,27 @@ Write-Message "no type label here" -NoPrefix
 # [Fri Aug 21 00:07:36 2026] no type label here
 ```
 
-`Debug` and `Verbose` only produce output when their matching preference is active — pass the common `-Debug`/`-Verbose` switch (as above), or set `$DebugPreference`/`$VerbosePreference = 'Continue'` yourself. Without that, the call produces no output at all.
+`Debug` and `Verbose` only produce output when their matching preference is anything other than `SilentlyContinue` — pass the common `-Debug`/`-Verbose` switch (as above), either directly or to any ancestor function in the call chain, or set `$DebugPreference`/`$VerbosePreference` yourself. Without that, the call produces no output at all.
 
 Tee a message to a log file (always written without ANSI color, regardless of `-Clean`):
 
 ```powershell
 Write-Message "also logged to file" -OutFile ./app.log
 ```
+
+## Output stream
+
+`Write-Message` writes to the host via `Write-Host` (the information stream, `6`) and never to the success stream, so log lines can't contaminate a function's return value or a captured pipeline — no `| Out-Host` dance required:
+
+```powershell
+function Get-Widget {
+    Write-Message "fetching widget"
+    42
+}
+$w = Get-Widget          # prints the log line; $w is exactly 42
+```
+
+To capture the rendered text, redirect the information stream (`Get-Widget 6>&1`) or use `-OutFile`.
 
 ## Parameters
 
@@ -75,7 +89,11 @@ See `Get-Help Write-Message -Full` for complete parameter and example documentat
 
 ## Versioning
 
-This module uses [CalVer](https://calver.org/) (`YYYY.0M.0D`) rather than SemVer — `ModuleVersion` reflects the date of the release, not compatibility guarantees. Note that PowerShell's `ModuleVersion` field is a `[System.Version]`, so the zero-padding is preserved in this file's source but stripped when read back at runtime (`2026.08.21` reports as `2026.8.21` via `Get-Module`/`Test-ModuleManifest`).
+This module uses [CalVer](https://calver.org/) (`YYYY.0M.0D`) rather than SemVer — `ModuleVersion` reflects the date of the release, not compatibility guarantees. Because the version number carries no compatibility signal, **breaking changes are called out explicitly in [`CHANGELOG.md`](CHANGELOG.md)**. Note that PowerShell's `ModuleVersion` field is a `[System.Version]`, so the zero-padding is preserved in this file's source but stripped when read back at runtime (`2026.08.21` reports as `2026.8.21` via `Get-Module`/`Test-ModuleManifest`).
+
+## Changelog
+
+See [`CHANGELOG.md`](CHANGELOG.md) for the full history. Release notes for the installed version are also available via `(Find-Module PSWriteMessage).ReleaseNotes` or on the [PowerShell Gallery](https://www.powershellgallery.com/packages/PSWriteMessage) page.
 
 ## License
 
