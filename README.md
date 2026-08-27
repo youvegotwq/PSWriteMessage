@@ -1,19 +1,29 @@
 # PSWriteMessage
 
+[![PowerShell Gallery Version](https://img.shields.io/powershellgallery/v/PSWriteMessage)](https://www.powershellgallery.com/packages/PSWriteMessage)
+[![PowerShell Gallery Downloads](https://img.shields.io/powershellgallery/dt/PSWriteMessage)](https://www.powershellgallery.com/packages/PSWriteMessage)
+[![License](https://img.shields.io/github/license/youvegotwq/PSWriteMessage)](LICENSE)
+
 A drop-in replacement for PowerShell's builtin `Write-*` cmdlets. `Write-Message` timestamps every message and formats it by type — Debug, Verbose, Info, Success, Warning, Error — with color and a type-label prefix, and can optionally tee the message to a log file.
 
 ## Installation
 
-Clone into a folder on your `$env:PSModulePath` named to match the module, so it can be found by name:
+Install from the [PowerShell Gallery](https://www.powershellgallery.com/packages/PSWriteMessage):
 
 ```powershell
-git clone https://github.com/youvegotwq/PSWriteMessage.git "$HOME\Documents\PowerShell\Modules\PSWriteMessage"
+Install-Module -Name PSWriteMessage -Scope CurrentUser
 ```
 
 Then import it like any other module:
 
 ```powershell
 Import-Module PSWriteMessage
+```
+
+Alternatively, clone the repo straight into a folder on your `$env:PSModulePath` named to match the module:
+
+```powershell
+git clone https://github.com/youvegotwq/PSWriteMessage.git "$HOME\Documents\PowerShell\Modules\PSWriteMessage"
 ```
 
 **Requirements:** PowerShell 5.1 or later. Colored output requires PowerShell 7.2+ (`$PSStyle`); on earlier versions `Write-Message` still works, just without ANSI color.
