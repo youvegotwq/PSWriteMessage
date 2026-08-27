@@ -19,9 +19,11 @@ function Write-Message {
     .PARAMETER Type
         The type of message to be sent. Valid options are Debug, Verbose,
         Info, Success, Warning, and Error. Debug and Verbose only produce
-        output when $DebugPreference / $VerbosePreference is 'Continue' --
-        pass the common -Debug or -Verbose switch to enable them for a
-        single call.
+        output when the corresponding preference is not 'SilentlyContinue'
+        -- pass the common -Debug or -Verbose switch (on this call or any
+        ancestor in the call chain), or set $DebugPreference /
+        $VerbosePreference. Write-Message only prints; it does not honor
+        the prompt/throw behavior of 'Inquire' or 'Stop'.
     .PARAMETER Clean
         Removes all ANSI formatting from the message before output. Also
         enforced automatically on PowerShell versions below 7, and on any
@@ -78,6 +80,28 @@ function Write-Message {
 
         $Date = $(Get-Date -UFormat "[%a %b %d %T %Y] ")
 
+        # An unqualified $VerbosePreference / $DebugPreference read inside a
+        # module function resolves against THIS module's scope chain, so
+        # -Verbose / -Debug on an ancestor caller in another module or script
+        # is invisible here. Resolve the effective preference once: honor a
+        # switch bound directly on Write-Message (PowerShell sets the local
+        # preference for that call), otherwise fall back to the caller's
+        # scope via $PSCmdlet.GetVariableValue, which walks the calling scope
+        # chain and reflects a switch passed to an ancestor.
+        $EffectiveVerbose = if ($PSBoundParameters.ContainsKey('Verbose')) { $VerbosePreference }
+                            else { $PSCmdlet.GetVariableValue('VerbosePreference') }
+        $EffectiveDebug   = if ($PSBoundParameters.ContainsKey('Debug'))   { $DebugPreference }
+                            else { $PSCmdlet.GetVariableValue('DebugPreference') }
+
+        # Show the message for any non-silent preference, mirroring how the
+        # builtin Write-Verbose / Write-Debug gate visibility. This also lets
+        # -Debug work on Windows PowerShell 5.1, where the switch sets
+        # $DebugPreference to 'Inquire' (7.x sets 'Continue'). Write-Message
+        # only prints -- it does not reproduce the Inquire prompt or Stop
+        # throw -- so those degrade to print-and-continue.
+        $ShowVerbose = $EffectiveVerbose -and $EffectiveVerbose -ne 'SilentlyContinue'
+        $ShowDebug   = $EffectiveDebug   -and $EffectiveDebug   -ne 'SilentlyContinue'
+
         # $PSStyle (PowerShell 7.2+) supplies ANSI styling. Degrade to
         # no color -- same as -Clean -- on PowerShell versions where
         # it isn't defined, rather than erroring on Foreground.* access.
@@ -124,13 +148,13 @@ function Write-Message {
 
         switch ($Type) {
             'Debug' {
-                if ($DebugPreference -eq 'Continue') {
+                if ($ShowDebug) {
                     $t = $TypeInfo.Debug
                     $MessageContent = "$($t.Color)$Date$($t.Bold)$($t.Prefix)$($t.Color)$Message$ColorDefault"
                 }
             }
             'Verbose' {
-                if ($VerbosePreference -eq 'Continue') {
+                if ($ShowVerbose) {
                     $t = $TypeInfo.Verbose
                     $MessageContent = "$($t.Color)$Date$($t.Bold)$($t.Prefix)$($t.Color)$Message$ColorDefault"
                 }
@@ -147,14 +171,14 @@ function Write-Message {
         #   └──────────────────────────────────────────────┘
 
         if ($OutFile) {
-            if ($DebugPreference -eq 'Continue') {
+            if ($ShowDebug) {
                 $t = $TypeInfo.Debug
                 Write-Output "$($t.Color)$Date$($t.Bold)$($t.Prefix)$($t.Color)`$OutFile detected as $OutFile."
             }
             try {
                 switch ($Type) {
-                    'Debug' { if ($DebugPreference -eq 'Continue') { Add-Content -Path $OutFile -Value "$Date$($TypeInfo.Debug.Prefix)$Message" } }
-                    'Verbose' { if ($VerbosePreference -eq 'Continue') { Add-Content -Path $OutFile -Value "$Date$($TypeInfo.Verbose.Prefix)$Message" } }
+                    'Debug' { if ($ShowDebug) { Add-Content -Path $OutFile -Value "$Date$($TypeInfo.Debug.Prefix)$Message" } }
+                    'Verbose' { if ($ShowVerbose) { Add-Content -Path $OutFile -Value "$Date$($TypeInfo.Verbose.Prefix)$Message" } }
                     default { Add-Content -Path $OutFile -Value "$Date$($TypeInfo[$Type].Prefix)$Message" }
                 }
             }
