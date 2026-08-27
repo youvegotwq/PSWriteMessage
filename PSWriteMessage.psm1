@@ -1,9 +1,9 @@
 function Write-Message {
     <#
     .SYNOPSIS
-        Writes a string to the pipeline in a specifically formatted manner.
+        Writes a formatted, timestamped message to the host.
     .DESCRIPTION
-        Writes a string to the pipeline in a specifically formatted manner.
+        Writes a formatted, timestamped message to the host.
 
         'Write-Message' includes functionality for writing PowerShell's
         default messages, including warnings, errors, verbose, and debug
@@ -13,7 +13,10 @@ function Write-Message {
         easy timestamping.
 
         This function can be utilized in place of the various builtin
-        'Write-*' cmdlets.
+        'Write-*' cmdlets. Output goes to the host via Write-Host (the
+        information stream, #6) -- never the success stream -- so it will
+        not contaminate a function's return value or a captured pipeline.
+        Redirect 6> or use -OutFile to capture it.
     .PARAMETER Message
         Any message to be sent, must be enclosed in quotes.
     .PARAMETER Type
@@ -39,17 +42,21 @@ function Write-Message {
         The "Warning" and "Error" types do not write to any builtin variable
         and do not terminate or throw. Error handling must be done via other
         methods, 'Write-Message' is purely an informational utility.
+
+        Nothing is written to the success stream. Assigning the result of a
+        'Write-Message' call ($x = Write-Message ...) yields $null; use 6>&1
+        or -OutFile to capture the rendered text.
     .EXAMPLE
         Write-Message "Hello world!"
         [Tue May 01 12:00:00 2023] [INFO]    Hello world!
 
-        Writes a general message. With no other parameters, the output is
+        Writes a general message. With no other parameters, the type is
         assumed to be "Info".
     .EXAMPLE
         Write-Message "An error occurred." -Type Error
         [Tue May 01 12:00:00 2023] [ERROR]   An error occurred.
 
-        Writes an error message to output.
+        Writes an error message to the host.
     .EXAMPLE
         Write-Message "Hello world!" -NoPrefix
         [Tue May 01 12:00:00 2023] Hello world!
@@ -58,7 +65,7 @@ function Write-Message {
     #>
 
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType([void])]
     param(
         [Parameter(Mandatory, Position = 0)] [string]$Message,
         [ValidateSet('Debug', 'Verbose', 'Info', 'Success', 'Warning', 'Error')] [string]$Type = 'Info',
@@ -173,7 +180,7 @@ function Write-Message {
         if ($OutFile) {
             if ($ShowDebug) {
                 $t = $TypeInfo.Debug
-                Write-Output "$($t.Color)$Date$($t.Bold)$($t.Prefix)$($t.Color)`$OutFile detected as $OutFile."
+                Write-Host "$($t.Color)$Date$($t.Bold)$($t.Prefix)$($t.Color)`$OutFile detected as $OutFile."
             }
             try {
                 switch ($Type) {
@@ -184,13 +191,16 @@ function Write-Message {
             }
             catch {
                 $t = $TypeInfo.Error
-                Write-Output "$Date$($t.Color)$($t.Prefix)$($ColorDefault)An error occurred while attempting to write to the output file. `n                                   $($_.Exception.Message)"
+                Write-Host "$Date$($t.Color)$($t.Prefix)$($ColorDefault)An error occurred while attempting to write to the output file. `n                                   $($_.Exception.Message)"
             }
         }
     }
 
     end {
-        if ($null -ne $MessageContent) { $MessageContent }
+        # Write-Host routes to the information stream (#6), not the success
+        # stream, so log lines never leak into a caller's return value or a
+        # captured pipeline. Redirect 6> or use -OutFile to capture output.
+        if ($null -ne $MessageContent) { Write-Host $MessageContent }
     }
 }
 

@@ -53,13 +53,27 @@ Write-Message "no type label here" -NoPrefix
 # [Fri Aug 21 00:07:36 2026] no type label here
 ```
 
-`Debug` and `Verbose` only produce output when their matching preference is active — pass the common `-Debug`/`-Verbose` switch (as above), or set `$DebugPreference`/`$VerbosePreference = 'Continue'` yourself. Without that, the call produces no output at all.
+`Debug` and `Verbose` only produce output when their matching preference is anything other than `SilentlyContinue` — pass the common `-Debug`/`-Verbose` switch (as above), either directly or to any ancestor function in the call chain, or set `$DebugPreference`/`$VerbosePreference` yourself. Without that, the call produces no output at all.
 
 Tee a message to a log file (always written without ANSI color, regardless of `-Clean`):
 
 ```powershell
 Write-Message "also logged to file" -OutFile ./app.log
 ```
+
+## Output stream
+
+`Write-Message` writes to the host via `Write-Host` (the information stream, `6`) and never to the success stream, so log lines can't contaminate a function's return value or a captured pipeline — no `| Out-Host` dance required:
+
+```powershell
+function Get-Widget {
+    Write-Message "fetching widget"
+    42
+}
+$w = Get-Widget          # prints the log line; $w is exactly 42
+```
+
+To capture the rendered text, redirect the information stream (`Get-Widget 6>&1`) or use `-OutFile`.
 
 ## Parameters
 
